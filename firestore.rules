@@ -1,0 +1,54 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: users
+    // Document ID: {uid}
+    // Fields: uid, email, displayName, photoURL, createdAt
+    //
+    // Collection: transformations
+    // Document ID: {id}
+    // Fields: uid, originalImage, resultImage, style, options, createdAt
+    // ===============================================================
+
+    // Helper Functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.email == "harukojapan.business@gmail.com" && request.auth.token.email_verified == true);
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'email']) &&
+             data.uid is string && data.email is string;
+    }
+
+    function isValidTransformation(data) {
+      return data.keys().hasAll(['uid', 'originalImage', 'resultImage', 'style']) &&
+             data.uid == request.auth.uid &&
+             data.originalImage is string && data.originalImage.size() < 2000000 &&
+             data.resultImage is string && data.resultImage.size() < 2000000 &&
+             data.style is string;
+    }
+
+    match /users/{uid} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow create, update: if isOwner(uid) && isValidUser(request.resource.data);
+    }
+
+    match /transformations/{id} {
+      allow read: if (isAuthenticated() && resource.data.uid == request.auth.uid) || isAdmin();
+      allow create: if isAuthenticated() && isValidTransformation(request.resource.data);
+      allow delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
+    }
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "Stores user profile information.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Unique user ID" },
+        "email": { "type": "string", "format": "email", "description": "User email address" },
+        "displayName": { "type": "string", "description": "User display name" },
+        "photoURL": { "type": "string", "description": "User profile photo URL" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp" }
+      },
+      "required": ["uid", "email"]
+    },
+    "Transformation": {
+      "title": "Image Transformation",
+      "description": "Stores details of an image transformation session.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Owner's user ID" },
+        "originalImage": { "type": "string", "description": "Base64 encoded original image" },
+        "resultImage": { "type": "string", "description": "Base64 encoded transformed image" },
+        "style": { "type": "string", "description": "Transformation style used" },
+        "options": { "type": "object", "description": "Transformation options (intensity, detail, etc.)" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Transformation timestamp" }
+      },
+      "required": ["uid", "originalImage", "resultImage", "style"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "User",
+      "description": "User profile documents"
+    },
+    "/transformations/{id}": {
+      "schema": "Transformation",
+      "description": "Transformation history documents"
+    }
+  }
+}
